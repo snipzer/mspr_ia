@@ -1,22 +1,9 @@
-const tf = require('@tensorflow/tfjs');
+const CsvDataMerger = require('./src/CsvDataMerger');
 
-// Load the binding:
-require('@tensorflow/tfjs-node');  // Use '@tensorflow/tfjs-node-gpu' if running with GPU.
+const training_set_value_path = './data/training_set_value.csv';
+const training_set_label_path = './data/training_set_label.csv';
+const finalFilePath = './data/final_value.csv';
 
-// Train a simple model:
-const model = tf.sequential();
-model.add(tf.layers.dense({units: 100, activation: 'relu', inputShape: [10]}));
-model.add(tf.layers.dense({units: 1, activation: 'linear'}));
-model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
-
-const xs = tf.randomNormal([100, 10]);
-const ys = tf.randomNormal([100, 1]);
-
-model.fit(xs, ys, {
-    epochs: 100,
-    callbacks: {
-        onEpochEnd: async (epoch, log) => {
-            console.log(`Epoch ${epoch}: loss = ${log.loss}`);
-        }
-    }
-});
+CsvDataMerger.execute(training_set_value_path, training_set_label_path, finalFilePath)
+    .then()
+    .catch(error => console.log(error));

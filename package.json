@@ -9,6 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@tensorflow/tfjs-node": "^0.1.18"
+    "@tensorflow/tfjs-node": "^0.1.18",
+    "csv-writer": "^1.2.0",
+    "csvtojson": "^2.0.8"
   }
 }
