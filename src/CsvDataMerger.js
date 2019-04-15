@@ -1,4 +1,3 @@
-const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const CsvDataHandler = require('./CsvDataHandler');
 
 class CsvDataMerger {
@@ -34,13 +33,9 @@ class CsvDataMerger {
         return headers;
     }
 
-    static async _writeFinalFile(finalFilePath, trainingSetFinal) {
+    static async _writeFinalFile(finalFilePath, headers, trainingSetFinal) {
         console.log(`Writing final data to ${finalFilePath}`);
-        const csvWriter = createCsvWriter({
-            path: finalFilePath,
-            header: CsvDataMerger._getHeaders(trainingSetFinal)
-        });
-        await csvWriter.writeRecords(trainingSetFinal);
+        await CsvDataHandler.writeCsv(finalFilePath, headers, trainingSetFinal)
     }
 
     static async execute(training_set_value_path, training_set_label_path, finalFilePath) {
@@ -49,7 +44,7 @@ class CsvDataMerger {
             let trainingSetValue = await CsvDataHandler.getCsvData(training_set_value_path);
             let trainingSetLabel = await CsvDataHandler.getCsvData(training_set_label_path);
             let trainingSetFinal = await CsvDataMerger._mergeData(trainingSetValue, trainingSetLabel);
-            await CsvDataMerger._writeFinalFile(finalFilePath, trainingSetFinal);
+            await CsvDataMerger._writeFinalFile(finalFilePath, CsvDataMerger._getHeaders(trainingSetFinal), trainingSetFinal);
             console.log("Done !");
         } catch(err) {
             console.log(err);
