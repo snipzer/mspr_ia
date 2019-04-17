@@ -3,7 +3,8 @@ const CsvDataHandler = require('./CsvDataHandler');
 class CsvDataFilter {
     static async execute(finalFilePath) {
         let datas = await CsvDataHandler.getCsvData(finalFilePath);
-        CsvDataFilter._scanData(datas);
+        const result = CsvDataFilter._scanData(datas);
+        // TODO remplacer les données
         CsvDataFilter._deleteRows(datas);
     }
 
@@ -47,18 +48,20 @@ class CsvDataFilter {
             public_meeting: {
                 occurence_true: 0,
                 total_occurence: 0,
-                moyenne: null,
+                moyenne: 0,
             },
             permit: {
                 occurence_true: 0,
                 total_occurence: 0,
-                moyenne: null,
+                moyenne: 0,
             },
+            construction_year: null,
             coordinates: []
         };
-        //CsvDataFilter._executeRanking(datas, result);
-        //CsvDataFilter._handleCoordinate(datas, result);
+        CsvDataFilter._executeRanking(datas, result);
+        CsvDataFilter._handleCoordinate(datas, result);
         CsvDataFilter._handleBool(datas, result);
+        CsvDataFilter._getMinimumConstructionDate(datas, result);
         console.log(result);
         return result;
     }
@@ -100,18 +103,39 @@ class CsvDataFilter {
         }
         console.log(`Sorting propertie : ${propertie}`);
         result[`${propertie}s`].sort((prev, next) => next.occurence - prev.occurence);
-        let k = 1;
         console.log(`Assigning id to propertie : ${propertie}`);
-        result[`${propertie}s`].forEach(fpropertie => {
-            if (k >= 11) {
-                fpropertie.id = k;
-            } else if (fpropertie.name.length > 1) {
-                fpropertie.id = k;
-                k++;
-            } else if (fpropertie.name.length <= 1) {
-                fpropertie.id = 11;
+        let totalOccurence = 0;
+        result[`${propertie}s`].forEach((object) => {
+            if(object.name.length > 1) {
+                totalOccurence += parseInt(object.occurence);
             }
-            // delete fpropertie.occurence;
+        });
+        const heightPercentOfTotalOccurence = 0.80 * totalOccurence;
+        let currentTotalOccurence = 0;
+        let k = 1;
+        result[`${propertie}s`].forEach(fpropertie => {
+            if(result[`${propertie}s`].length >= 20 ) {
+                if(fpropertie.name.length > 1) {
+                    currentTotalOccurence += fpropertie.occurence;
+                    if(currentTotalOccurence <= heightPercentOfTotalOccurence) {
+                        fpropertie.id = k;
+                        k += 1;
+                    } else {
+                        fpropertie.id = result[`${propertie}s`].length;
+                    }
+                } else {
+                    fpropertie.id = result[`${propertie}s`].length;
+                }
+            } else {
+                if (k >= 21) {
+                    fpropertie.id = k;
+                } else if (fpropertie.name.length > 1) {
+                    fpropertie.id = k;
+                    k++;
+                } else if (fpropertie.name.length <= 1) {
+                    fpropertie.id = 21;
+                }
+            }
         });
         console.log(`Ranking ${propertie} done ! duration: ${(new Date() - startTime) / 1000} s`);
         return result;
@@ -149,22 +173,37 @@ class CsvDataFilter {
             object.moyenne_latitude = CsvDataFilter._calculateMoyenne(object.latitudes);
             object.moyenne_height = CsvDataFilter._calculateMoyenne(object.heights);
         });
-        // console.log(result.coordinates);
-    }
-
-    static _handleBool(datas, result) {
-        const properties = ['public_meeting', 'permit'];
-        for(let i = 0; i < datas.length; i++) {
-            properties.forEach((propertie) => {
-                if(datas[i][propertie] === 'True') {
-
-                }
-            });
-        }
     }
 
     static _calculateMoyenne(array) {
         return array.reduce((accumulator, currentValue) => accumulator + currentValue) / array.length;
+    }
+
+    static _handleBool(datas, result) {
+        const properties = ['public_meeting', 'permit'];
+        datas.forEach((data) => {
+            properties.forEach((propertie) => {
+                if(data[propertie] !== '') {
+                    result[propertie].total_occurence += 1;
+                    if(data[propertie] === 'True') {
+                        result[propertie].occurence_true += 1;
+                    }
+                }
+            });
+        });
+        properties.forEach((propertie) => {
+            result[propertie].moyenne = result[propertie].occurence_true / result[propertie].total_occurence;
+        })
+    }
+
+    static _getMinimumConstructionDate(datas, result) {
+        datas.forEach(data => {
+            if (result.construction_year === null && data.construction_year !== '0') {
+                result.construction_year = parseInt(data.construction_year);
+            } else if (result.construction_year > parseInt(data.construction_year) && data.construction_year !== '0') {
+                result.construction_year = parseInt(data.construction_year);
+            }
+        })
     }
 }
 
