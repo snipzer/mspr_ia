@@ -2,13 +2,13 @@ const CsvDataHandler = require('./CsvDataHandler');
 
 class CsvDataFilter {
     static async execute(finalFilePath) {
-        const toDelete = ['region', 'permit', 'recorded_by'];
         let datas = await CsvDataHandler.getCsvData(finalFilePath);
         CsvDataFilter._scanData(datas);
-        CsvDataFilter._deleteRows(datas, toDelete);
+        CsvDataFilter._deleteRows(datas);
     }
 
-    static _deleteRows(datas, toDelete) {
+    static _deleteRows(datas) {
+        const toDelete = ['num_private', 'population'];
         console.log(`Deleting columns : ${toDelete}`);
         toDelete.forEach((propertie) => {
             delete datas[propertie];
@@ -19,28 +19,66 @@ class CsvDataFilter {
         const result = {
             funders: [],
             installers: [],
+            wpt_names: [],
             basins: [],
             subvillages: [],
+            regions: [],
+            lgas: [],
+            wards: [],
+            scheme_managements: [],
+            scheme_names: [],
             extraction_types: [],
             extraction_type_classs: [],
             extraction_type_groups: [],
+            managements: [],
+            management_groups: [],
+            payments: [],
+            payment_types: [],
+            water_qualitys: [],
+            quality_groups: [],
+            quantitys: [],
+            quantity_groups: [],
+            sources: [],
+            source_types: [],
+            source_classs: [],
+            waterpoint_types: [],
+            waterpoint_type_groups: [],
+            status_groups: [],
+            public_meeting: {
+                occurence_true: 0,
+                total_occurence: 0,
+                moyenne: null,
+            },
+            permit: {
+                occurence_true: 0,
+                total_occurence: 0,
+                moyenne: null,
+            },
             coordinates: []
         };
         //CsvDataFilter._executeRanking(datas, result);
-        // TODO Pour longiture et lattitude, faire la moyenne des régions
-        CsvDataFilter._handleCoordinate(datas, result);
-        // console.log(result);
+        //CsvDataFilter._handleCoordinate(datas, result);
+        CsvDataFilter._handleBool(datas, result);
+        console.log(result);
         return result;
     }
 
     static _executeRanking(datas, result) {
-        const propertieToRank = ['funder', 'installer', 'basin', 'subvillage', 'extraction_type', 'extraction_type_class', 'extraction_type_group'];
+        const propertieToRank = [
+            'funder', 'installer', 'wpt_name', 'basin', 'subvillage',
+            'region', 'lga', 'ward', 'scheme_management',
+            'scheme_name', 'extraction_type', 'extraction_type_class', 'extraction_type_group',
+            'management', 'management_group', 'payment', 'payment_type',
+            'water_quality', 'quality_group', 'quantity', 'quantity_group',
+            'source', 'source_type', 'source_class', 'waterpoint_type', 'waterpoint_type_group', 'status_group'
+        ];
         propertieToRank.forEach((propertie) => {
             CsvDataFilter._rankProperties(datas, result, propertie);
         })
     }
 
     static _rankProperties(datas, result, propertie) {
+        const startTime = new Date();
         console.log(`Starting to rank properties : ${propertie}`);
         for (let i = 0; i < datas.length; i++) {
             let filtered = result[`${propertie}s`].filter(object => object.name === datas[i][propertie]);
@@ -60,8 +98,10 @@ class CsvDataFilter {
                 }
             }
         }
+        console.log(`Sorting propertie : ${propertie}`);
         result[`${propertie}s`].sort((prev, next) => next.occurence - prev.occurence);
         let k = 1;
+        console.log(`Assigning id to propertie : ${propertie}`);
         result[`${propertie}s`].forEach(fpropertie => {
             if (k >= 11) {
                 fpropertie.id = k;
@@ -73,7 +113,7 @@ class CsvDataFilter {
             }
             // delete fpropertie.occurence;
         });
-        console.log(`Ranking ${propertie} done !`);
+        console.log(`Ranking ${propertie} done ! duration: ${(new Date() - startTime) / 1000} s`);
         return result;
     }
 
@@ -109,7 +149,18 @@ class CsvDataFilter {
             object.moyenne_latitude = CsvDataFilter._calculateMoyenne(object.latitudes);
             object.moyenne_height = CsvDataFilter._calculateMoyenne(object.heights);
         });
-        console.log(result.coordinates);
+        // console.log(result.coordinates);
+    }
+
+    static _handleBool(datas, result) {
+        const properties = ['public_meeting', 'permit'];
+        for(let i = 0; i < datas.length; i++) {
+            properties.forEach((propertie) => {
+                if(datas[i][propertie] === 'True') {
+
+                }
+            });
+        }
     }
 
     static _calculateMoyenne(array) {
