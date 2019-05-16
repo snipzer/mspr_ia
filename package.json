@@ -7,7 +7,8 @@
     "start": "node index.js",
     "merge": "node ./executions/mergecsv.js",
     "filter": "node ./executions/filtercsv.js",
-    "replace": "node ./executions/replacecsv.js"
+    "replace": "node ./executions/replacecsv.js",
+    "learning": "node ./executions/learning.js"
   },
   "author": "",
   "license": "ISC",
