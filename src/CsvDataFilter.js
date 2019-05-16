@@ -1,19 +1,11 @@
-const CsvDataHandler = require('./CsvDataHandler');
+const CsvHandler = require('./handler/CsvHandler');
+const FileHandler = require('./handler/FileHandler');
 
 class CsvDataFilter {
-    static async execute(finalFilePath) {
-        let datas = await CsvDataHandler.getCsvData(finalFilePath);
+    static async execute(finalFilePath, jsonFilePath) {
+        let datas = await CsvHandler.getCsvData(finalFilePath);
         const result = CsvDataFilter._scanData(datas);
-        // TODO remplacer les données
-        CsvDataFilter._deleteRows(datas);
-    }
-
-    static _deleteRows(datas) {
-        const toDelete = ['num_private', 'population'];
-        console.log(`Deleting columns : ${toDelete}`);
-        toDelete.forEach((propertie) => {
-            delete datas[propertie];
-        });
+        FileHandler.writeFile(jsonFilePath, JSON.stringify(result));
     }
 
     static _scanData(datas) {
@@ -66,8 +58,8 @@ class CsvDataFilter {
         return result;
     }
 
-    static _executeRanking(datas, result) {
-        const propertieToRank = [
+    static getPropertieToRank() {
+        return [
             'funder', 'installer', 'wpt_name', 'basin', 'subvillage',
             'region', 'lga', 'ward', 'scheme_management',
             'scheme_name', 'extraction_type', 'extraction_type_class', 'extraction_type_group',
@@ -75,7 +67,10 @@ class CsvDataFilter {
             'water_quality', 'quality_group', 'quantity', 'quantity_group',
             'source', 'source_type', 'source_class', 'waterpoint_type', 'waterpoint_type_group', 'status_group'
         ];
-        propertieToRank.forEach((propertie) => {
+    }
+
+    static _executeRanking(datas, result) {
+        CsvDataFilter.getPropertieToRank().forEach((propertie) => {
             CsvDataFilter._rankProperties(datas, result, propertie);
         })
     }
@@ -179,10 +174,13 @@ class CsvDataFilter {
         return array.reduce((accumulator, currentValue) => accumulator + currentValue) / array.length;
     }
 
+    static getBooleanProperty() {
+        return ['public_meeting', 'permit'];
+    }
+
     static _handleBool(datas, result) {
-        const properties = ['public_meeting', 'permit'];
         datas.forEach((data) => {
-            properties.forEach((propertie) => {
+            CsvDataFilter.getBooleanProperty().forEach((propertie) => {
                 if(data[propertie] !== '') {
                     result[propertie].total_occurence += 1;
                     if(data[propertie] === 'True') {
@@ -191,7 +189,7 @@ class CsvDataFilter {
                 }
             });
         });
-        properties.forEach((propertie) => {
+        CsvDataFilter.getBooleanProperty().forEach((propertie) => {
             result[propertie].moyenne = result[propertie].occurence_true / result[propertie].total_occurence;
         })
     }

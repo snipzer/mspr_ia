@@ -1,4 +1,4 @@
-const CsvDataHandler = require('./CsvDataHandler');
+const CsvHandler = require('./handler/CsvHandler');
 
 class CsvDataMerger {
     static _mergeData(trainingSetValue, trainingSetLabel) {
@@ -20,31 +20,18 @@ class CsvDataMerger {
         });
     }
 
-    static _getHeaders(trainingSetFinal) {
-        console.log("Getting headers...");
-        let headers = Object.keys(trainingSetFinal[0]);
-        for(let i = 0; i < headers.length; i++) {
-            headers[i] = {
-                id: headers[i],
-                title: headers[i]
-            }
-        }
-        console.log("Getting headers done !");
-        return headers;
-    }
-
     static async _writeFinalFile(finalFilePath, headers, trainingSetFinal) {
         console.log(`Writing final data to ${finalFilePath}`);
-        await CsvDataHandler.writeCsv(finalFilePath, headers, trainingSetFinal)
+        await CsvHandler.writeCsv(finalFilePath, headers, trainingSetFinal)
     }
 
     static async execute(training_set_value_path, training_set_label_path, finalFilePath) {
         try {
             console.log("Starting");
-            let trainingSetValue = await CsvDataHandler.getCsvData(training_set_value_path);
-            let trainingSetLabel = await CsvDataHandler.getCsvData(training_set_label_path);
+            let trainingSetValue = await CsvHandler.getCsvData(training_set_value_path);
+            let trainingSetLabel = await CsvHandler.getCsvData(training_set_label_path);
             let trainingSetFinal = await CsvDataMerger._mergeData(trainingSetValue, trainingSetLabel);
-            await CsvDataMerger._writeFinalFile(finalFilePath, CsvDataMerger._getHeaders(trainingSetFinal), trainingSetFinal);
+            await CsvDataMerger._writeFinalFile(finalFilePath, trainingSetFinal);
             console.log("Done !");
         } catch(err) {
             console.log(err);
