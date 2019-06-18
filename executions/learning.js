@@ -12,33 +12,37 @@ const execute = async () => {
 
         const labels = [];
         datas.forEach(element => {
-            labels.push([].push(element.pop()));
+            labels.push(convert(element.pop()));
         });
 
-        // const model = tf.sequential({
-        //     layers: [
-        //         tf.layers.dense({inputShape: [datas[0].length], units: 1, activation: 'relu'}),
-        //         tf.layers.dense({units: 1, activation: 'relu'}),
-        //         tf.layers.dense({units: 1, activation: 'relu'}),
-        //         tf.layers.dense({units: 1, activation: 'relu'}),
-        //         tf.layers.dense({units: 1, activation: 'relu'}),
-        //         tf.layers.dense({units: 1, activation: 'relu'}),
-        //         tf.layers.dense({units: 1, activation: 'relu'}),
-        //         tf.layers.dense({units: 1, activation: 'relu'}),
-        //         tf.layers.dense({units: 1, activation: 'relu'}),
-        //         tf.layers.dense({units: 1, activation: 'relu'}),
-        //         tf.layers.dense({units: 1, activation: 'softmax'}),
-        //     ]
-        // });
+        function convert(input) {
+            switch(input) {
+                case "1":
+                    return [0, 0, 1];
+                case "2":
+                    return [0, 1, 0];
+                case "3":
+                    return [1, 0, 0];
+                default:
+                    break;
+            }
+            return null;
+        }
 
-        const input = tf.input({shape: [datas[0].length]});
-        const dense1 = tf.layers.dense({units: 1, activation: 'relu'}).apply(input);
-        const dense2 = tf.layers.dense({units: 1, activation: 'softmax'}).apply(dense1);
-        const model = tf.model({inputs: input, outputs: dense2});
+        const model = tf.sequential({
+            layers: [
+                tf.layers.dense({inputShape: [datas[0].length], units: 36, activation: 'relu'}),
+                tf.layers.dense({inputShape: [datas[0].length], units: 36, activation: 'relu'}),
+                tf.layers.dense({inputShape: [datas[0].length], units: 36, activation: 'relu'}),
+                tf.layers.dense({inputShape: [datas[0].length], units: 36, activation: 'relu'}),
+                tf.layers.dense({inputShape: [datas[0].length], units: 36, activation: 'relu'}),
+                tf.layers.dense({units: 3, activation: 'softmax', batchInputShape: [null,36]}),
+            ]
+        });
 
         model.compile({
             optimizer: 'sgd',
-            loss: 'meanSquaredError',
+            loss: 'categoricalCrossentropy',
             metrics: ['accuracy']
         });
 
@@ -47,25 +51,27 @@ const execute = async () => {
         }
 
         const xs = tf.tensor2d(datas, [datas.length, datas[0].length]);
-        const ys = tf.tensor1d(labels);
+        const ys = tf.tensor2d(labels, [labels.length, labels[0].length]);
 
-        console.log(xs.print())
-        console.log(ys.print())
+        console.log(xs.print());
+        console.log(ys.print());
 
         model.fit(xs, ys, {
-            epochs: 2,
-            batchSize: 1000,
+            epochs: 1,
+            batchSize: datas[0].length,
             callbacks: {onBatchEnd}
         }).then(info => {
-            // console.log('Final accuracy', info.history.acc);
+            console.log('Final accuracy', info.history.acc);
             const prediction = model.predict(tf.tensor2d(tests, [tests.length, tests[0].length]), {
-                batchSize: 1000
+                batchSize: datas[0].length
             });
             prediction.print();
             const results = prediction.dataSync();
-            results.forEach(result => {
-                console.log(result)
-            });
+            // console.log(results.length);
+            // console.log(tests.length)
+            // results.forEach(result => {
+            //     console.log(result)
+            // });
         }).catch(err => console.log(err));
     } catch(err) {
         console.log(err);
