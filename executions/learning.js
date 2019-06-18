@@ -15,12 +15,26 @@ const execute = async () => {
             labels.push([].push(element.pop()));
         });
 
-        const model = tf.sequential({
-            layers: [
-                tf.layers.dense({batchInputShape: [,datas[0].length], units: 1, activation: 'relu'})
-            ]
-        });
+        // const model = tf.sequential({
+        //     layers: [
+        //         tf.layers.dense({inputShape: [datas[0].length], units: 1, activation: 'relu'}),
+        //         tf.layers.dense({units: 1, activation: 'relu'}),
+        //         tf.layers.dense({units: 1, activation: 'relu'}),
+        //         tf.layers.dense({units: 1, activation: 'relu'}),
+        //         tf.layers.dense({units: 1, activation: 'relu'}),
+        //         tf.layers.dense({units: 1, activation: 'relu'}),
+        //         tf.layers.dense({units: 1, activation: 'relu'}),
+        //         tf.layers.dense({units: 1, activation: 'relu'}),
+        //         tf.layers.dense({units: 1, activation: 'relu'}),
+        //         tf.layers.dense({units: 1, activation: 'relu'}),
+        //         tf.layers.dense({units: 1, activation: 'softmax'}),
+        //     ]
+        // });
 
+        const input = tf.input({shape: [datas[0].length]});
+        const dense1 = tf.layers.dense({units: 1, activation: 'relu'}).apply(input);
+        const dense2 = tf.layers.dense({units: 1, activation: 'softmax'}).apply(dense1);
+        const model = tf.model({inputs: input, outputs: dense2});
 
         model.compile({
             optimizer: 'sgd',
@@ -35,15 +49,23 @@ const execute = async () => {
         const xs = tf.tensor2d(datas, [datas.length, datas[0].length]);
         const ys = tf.tensor1d(labels);
 
+        console.log(xs.print())
+        console.log(ys.print())
+
         model.fit(xs, ys, {
-            epochs: 5,
-            batchSize: datas.length,
+            epochs: 2,
+            batchSize: 1000,
             callbacks: {onBatchEnd}
         }).then(info => {
             // console.log('Final accuracy', info.history.acc);
-            model.predict(tf.tensor(tests, [tests.length, tests[0].length]), {
-                batchSize: tests.length
-            }).print();
+            const prediction = model.predict(tf.tensor2d(tests, [tests.length, tests[0].length]), {
+                batchSize: 1000
+            });
+            prediction.print();
+            const results = prediction.dataSync();
+            results.forEach(result => {
+                console.log(result)
+            });
         }).catch(err => console.log(err));
     } catch(err) {
         console.log(err);
