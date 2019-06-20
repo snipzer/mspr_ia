@@ -48,13 +48,19 @@ class CsvDataFilter {
                 moyenne: 0,
             },
             construction_year: null,
+            moyenne_construction_year: null,
+            max_construction_year: null,
+            min_date_recorded: null,
+            max_date_recorded: null,
+            moyenne_date_recorded: null,
             coordinates: []
         };
         CsvDataFilter._executeRanking(datas, result);
         CsvDataFilter._handleCoordinate(datas, result);
         CsvDataFilter._handleBool(datas, result);
         CsvDataFilter._getMinimumConstructionDate(datas, result);
-        console.log(result);
+        CsvDataFilter._getDateRecorded(datas, result);
+        // console.log(result);
         return result;
     }
 
@@ -195,13 +201,45 @@ class CsvDataFilter {
     }
 
     static _getMinimumConstructionDate(datas, result) {
+        const dateArray = [];
         datas.forEach(data => {
-            if (result.construction_year === null && data.construction_year !== '0') {
-                result.construction_year = parseInt(data.construction_year);
-            } else if (result.construction_year > parseInt(data.construction_year) && data.construction_year !== '0') {
-                result.construction_year = parseInt(data.construction_year);
+            const currentConstructionYear = data.construction_year;
+            if (result.construction_year === null && currentConstructionYear !== '0') {
+                result.construction_year = parseInt(currentConstructionYear);
+            } else if (result.construction_year > parseInt(currentConstructionYear) && currentConstructionYear !== '0') {
+                result.construction_year = parseInt(currentConstructionYear);
             }
-        })
+            if (result.max_construction_year === null && currentConstructionYear  !== '0') {
+                result.max_construction_year  = parseInt(currentConstructionYear );
+            } else if (result.max_construction_year < parseInt(currentConstructionYear ) && currentConstructionYear  !== '0') {
+                result.max_construction_year  = parseInt(currentConstructionYear );
+            }
+            if(currentConstructionYear !== '0') {
+                dateArray.push(parseInt(currentConstructionYear));
+            }
+        });
+        result.moyenne_construction_year = CsvDataFilter._calculateMoyenne(dateArray);
+    }
+
+    static _getDateRecorded(datas, result) {
+        const dateArray = [];
+        datas.forEach(data => {
+            const currentDate = new Date(data.date_recorded).getTime();
+            if (result.min_date_recorded === null && currentDate !== '0') {
+                result.min_date_recorded = currentDate;
+            } else if (result.min_date_recorded > currentDate && currentDate !== '0') {
+                result.min_date_recorded = currentDate;
+            }
+            if (result.max_date_recorded === null && currentDate  !== '0') {
+                result.max_date_recorded = currentDate;
+            } else if (result.max_date_recorded < currentDate && currentDate !== '0') {
+                result.max_date_recorded = currentDate;
+            }
+            if(currentDate !== '0') {
+                dateArray.push(currentDate);
+            }
+        });
+        result.moyenne_date_recorded = CsvDataFilter._calculateMoyenne(dateArray);
     }
 }
 

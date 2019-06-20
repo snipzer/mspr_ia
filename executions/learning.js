@@ -23,6 +23,11 @@ const execute = async () => {
                 tf.layers.dense({inputShape: [datas[0].length], units: 36, activation: 'relu', useBias: true}),
                 tf.layers.dense({units: 128, activation: 'relu', useBias: true}),
                 tf.layers.dense({units: 128, activation: 'relu', useBias: true}),
+                tf.layers.dense({units: 128, activation: 'relu', useBias: true}),
+                tf.layers.dense({units: 128, activation: 'relu', useBias: true}),
+                tf.layers.dense({units: 128, activation: 'relu', useBias: true}),
+                tf.layers.dense({units: 128, activation: 'relu', useBias: true}),
+                tf.layers.dense({units: 128, activation: 'relu', useBias: true}),
                 tf.layers.dense({units: 3, activation: 'softmax', batchInputShape: [null, 128]}),
             ]
         });
@@ -37,8 +42,10 @@ const execute = async () => {
         const xs = tf.tensor2d(datas, [datas.length, datas[0].length]);
         const ys = tf.tensor2d(labels, [labels.length, labels[0].length]);
 
+        console.log(datas[0]);
+
         model.fit(xs, ys, {
-            epochs: 5,
+            epochs: 20,
             batchSize: 256,
         }).then(info => {
             console.log('Final accuracy', info.history.acc);

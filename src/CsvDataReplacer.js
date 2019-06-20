@@ -35,14 +35,23 @@ class CsvDataReplacer {
 
     static _handleDate(property, dataHolder, data) {
         if(property === "date_recorded") {
-            data[property] = new Date(data[property]).getTime();
+            const dateMin = dataHolder["min_"+property];
+            const dateMax = dataHolder["max_"+property];
+            const dateMoyenne = dataHolder["moyenne_"+property];
+            data[property] = (new Date(data[property]).getTime() - parseInt(dateMoyenne)) / (parseInt(dateMax) - parseInt(dateMin));
         }
     }
 
     static _handleConstructionYear(property, dataHolder, data) {
         if(property === "construction_year") {
+            const dateMin = dataHolder[property];
+            const dateMax = dataHolder["max_"+property];
+            const dateMoyenne = dataHolder["moyenne_"+property];
             if(data[property] === null || data[property] === "0") {
-                data[property] = dataHolder[property];
+                data[property] = 0;
+            } else {
+                console.log((parseInt(data[property]) - parseInt(dateMoyenne)) / (parseInt(dateMax) - parseInt(dateMin)));
+                data[property] = (parseInt(data[property]) - parseInt(dateMoyenne)) / (parseInt(dateMax) - parseInt(dateMin));
             }
         }
     }
